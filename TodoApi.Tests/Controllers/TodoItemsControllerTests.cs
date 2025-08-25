@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Controllers;
 using TodoApi.Models;
+using TodoApi.Repositories;
 
 namespace TodoApi.Tests;
 
@@ -31,7 +32,9 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoItemController(context);
+            var itemRepository = new TodoItemRepository(context);
+            var listRepository = new TodoListRepository(context);
+            var controller = new TodoItemController(itemRepository, listRepository);
 
             var result = await controller.DeleteTodoItem(1, 1);
 
@@ -47,7 +50,9 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoItemController(context);
+            var itemRepository = new TodoItemRepository(context);
+            var listRepository = new TodoListRepository(context);
+            var controller = new TodoItemController(itemRepository, listRepository);
 
             var result = await controller.DeleteTodoItem(1, 2);
 
@@ -63,7 +68,9 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoItemController(context);
+            var itemRepository = new TodoItemRepository(context);
+            var listRepository = new TodoListRepository(context);
+            var controller = new TodoItemController(itemRepository, listRepository);
 
             var payload = new Dtos.UpdateTodoItem { IsCompleted = true };
 

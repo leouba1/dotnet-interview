@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using TodoApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 builder
@@ -7,6 +8,9 @@ builder
     )
     .AddEndpointsApiExplorer()
     .AddControllers();
+
+builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
+builder.Services.AddScoped<ITodoItemRepository, TodoItemRepository>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
