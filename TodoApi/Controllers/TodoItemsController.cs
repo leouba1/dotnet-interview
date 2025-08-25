@@ -52,7 +52,7 @@ namespace TodoApi.Controllers
             var todoItem = await _context.TodoItems.FirstOrDefaultAsync(x => x.Id == id);
             if (todoItem == null)
                 return NotFound();
-            
+
             todoItem.Description = payload.Description;
             todoItem.IsCompleted = payload.IsCompleted;
 
@@ -69,7 +69,7 @@ namespace TodoApi.Controllers
             var todoList = await _context.TodoList.FindAsync(todolistId);
             if (todoList == null)
                 return NotFound();
-            
+
             var todoItem = new TodoItem
             {
                 TodoListId = todolistId,
@@ -80,7 +80,7 @@ namespace TodoApi.Controllers
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTodoItem", new { id = todoItem.Id }, todoItem);
+            return CreatedAtAction("PostTodoItem", new { id = todoItem.Id }, todoItem);
         }
 
         // DELETE: api/todolists/5

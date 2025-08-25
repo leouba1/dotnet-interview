@@ -27,7 +27,9 @@ namespace TodoApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TodoList>> GetTodoList(long id)
         {
-            var todoList = await _context.TodoList.FindAsync(id);
+            var todoList = await _context.TodoList
+            .Include(x => x.TodoItems)
+            .FirstOrDefaultAsync(x => x.Id == id);
 
             if (todoList == null)
             {
