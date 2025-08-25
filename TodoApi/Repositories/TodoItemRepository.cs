@@ -12,17 +12,17 @@ public class TodoItemRepository : ITodoItemRepository
         _context = context;
     }
 
-    public Task<IList<TodoItem>> GetByListIdAsync(long listId)
+    public async Task<IList<TodoItem>> GetByListIdAsync(long listId)
     {
-        return _context.TodoItems
+        return await _context.TodoItems
             .Where(i => i.TodoListId == listId)
             .AsNoTracking()
             .ToListAsync();
     }
 
-    public Task<TodoItem?> GetAsync(long listId, long id)
+    public async Task<TodoItem?> GetAsync(long listId, long id)
     {
-        return _context.TodoItems
+        return await _context.TodoItems
             .FirstOrDefaultAsync(i => i.TodoListId == listId && i.Id == id);
     }
 
