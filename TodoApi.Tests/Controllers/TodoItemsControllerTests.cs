@@ -55,4 +55,25 @@ public class TodoItemsControllerTests
             Assert.Equal(2, context.TodoItems.Count());
         }
     }
+
+     [Fact]
+    public async Task PutTodoItem_WithOnlyIsCompleted_UpdatesField()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            var controller = new TodoItemController(context);
+
+            var payload = new Dtos.UpdateTodoItem { IsCompleted = true };
+
+            var result = await controller.PutTodoItem(1, 1, payload);
+
+            Assert.IsType<NoContentResult>(result);
+            var item = await context.TodoItems.FindAsync(1L);
+            Assert.NotNull(item);
+            Assert.True(item.IsCompleted);
+            Assert.Equal("Item 1", item.Description);
+        }
+    }
 }

@@ -18,23 +18,30 @@ namespace TodoApi.Controllers
 
         // GET: api/todolist/{id}/todoitems
         [HttpGet]
-        public async Task<ActionResult<IList<TodoItem>>> GetTodoItems(long todolistId)
+        public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(long todolistId)
         {
-            return Ok(await _context.TodoItems.Where(item => item.TodoListId == todolistId).ToListAsync());
+            return Ok(await _context.TodoItems
+                .Where(item => item.TodoListId == todolistId)
+                .Select(item => new TodoItemDto
+                {
+                    Description = item.Description,
+                    IsCompleted = item.IsCompleted
+                })
+                .ToListAsync());
         }
 
         // GET: api/todolist/{id}/todoitems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TodoItem>> GetTodoItem(long todolistId, long id)
+        public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id)
         {
             var todoItem = await _context.TodoItems
-            .Where(x => x.TodoListId == todolistId && x.Id == id)
-            .Select(x => new TodoItemDto
-            {
-                Description = x.Description,
-                IsCompleted = x.IsCompleted
-            })
-            .FirstOrDefaultAsync();
+                .Where(x => x.TodoListId == todolistId && x.Id == id)
+                .Select(x => new TodoItemDto
+                {
+                    Description = x.Description,
+                    IsCompleted = x.IsCompleted
+                })
+                .FirstOrDefaultAsync();
 
             if (todoItem == null)
             {
@@ -53,8 +60,11 @@ namespace TodoApi.Controllers
             if (todoItem == null)
                 return NotFound();
 
-            todoItem.Description = payload.Description;
-            todoItem.IsCompleted = payload.IsCompleted;
+            if (payload.Description is not null)
+                todoItem.Description = payload.Description;
+
+            if (payload.IsCompleted.HasValue)
+                todoItem.IsCompleted = payload.IsCompleted.Value;
 
             await _context.SaveChangesAsync();
 
@@ -86,7 +96,7 @@ namespace TodoApi.Controllers
                 IsCompleted = todoItem.IsCompleted
             };
 
-            return CreatedAtAction(nameof(PostTodoItem), new { todolistId, id = todoItem.Id }, dto);
+            return CreatedAtAction(nameof(GetTodoItem), new { todolistId, id = todoItem.Id }, dto);
         }
 
         // DELETE: api/todolist/{todolistId}/todoitems/{id}
