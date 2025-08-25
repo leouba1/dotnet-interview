@@ -49,7 +49,7 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> PutTodoItem(long todolistId, long id, UpdateTodoItem payload)
         {
-            var todoItem = await _context.TodoItems.FirstOrDefaultAsync(x => x.Id == id);
+            var todoItem = await _context.TodoItems.FirstOrDefaultAsync(x => x.Id == id && x.TodoListId == todolistId);
             if (todoItem == null)
                 return NotFound();
 
