@@ -58,13 +58,13 @@ namespace TodoApi.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok();
+            return NoContent();
         }
 
         // POST: api/todoitems
         // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TodoItem>> PostTodoItem(long todolistId, CreateTodoItem payload)
+        public async Task<ActionResult<TodoItemDto>> PostTodoItem(long todolistId, CreateTodoItem payload)
         {
             var todoList = await _context.TodoList.FindAsync(todolistId);
             if (todoList == null)
@@ -80,7 +80,13 @@ namespace TodoApi.Controllers
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("PostTodoItem", new { id = todoItem.Id }, todoItem);
+            var dto = new TodoItemDto
+            {
+                Description = todoItem.Description,
+                IsCompleted = todoItem.IsCompleted
+            };
+
+            return CreatedAtAction(nameof(PostTodoItem), new { todolistId, id = todoItem.Id }, dto);
         }
 
         // DELETE: api/todolist/{todolistId}/todoitems/{id}

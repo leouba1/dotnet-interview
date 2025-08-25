@@ -28,8 +28,8 @@ namespace TodoApi.Controllers
         public async Task<ActionResult<TodoList>> GetTodoList(long id)
         {
             var todoList = await _context.TodoList
-            .Include(x => x.TodoItems)
-            .FirstOrDefaultAsync(x => x.Id == id);
+                .Include(x => x.TodoItems)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (todoList == null)
             {
@@ -67,7 +67,7 @@ namespace TodoApi.Controllers
             _context.TodoList.Add(todoList);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTodoList", new { id = todoList.Id }, todoList);
+            return CreatedAtAction(nameof(PostTodoList), new { id = todoList.Id }, todoList);
         }
 
         // DELETE: api/todolists/5
