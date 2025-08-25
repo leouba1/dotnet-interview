@@ -16,17 +16,25 @@
   // Features to add to the dev container. More info: https://containers.dev/features.
   "features": {},
 
+  // Environment variables for the container.
+  "containerEnv": {
+    "ASPNETCORE_Kestrel__Certificates__Default__Path": "/app/_certs/aspnet.pfx",
+    "ASPNETCORE_Kestrel__Certificates__Default__Password": "DevPwd123!",
+    "ASPNETCORE_URLS": "https://0.0.0.0:7027;http://0.0.0.0:5083"
+  },
+
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [],
+  "forwardPorts": [5083, 7027],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "dotnet restore && dotnet build",
+  "postCreateCommand": "bash -lc 'mkdir -p /app/_certs && [ -f /app/_certs/aspnet.pfx ] || dotnet dev-certs https -ep /app/_certs/aspnet.pfx -p DevPwd123!; dotnet restore && dotnet build'",
 
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {
       "extensions": [
-        "Postman.postman-for-vscode"
+        "Postman.postman-for-vscode",
+        "ms-mssql.mssql"
       ]
     }
   }
