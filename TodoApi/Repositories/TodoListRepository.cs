@@ -6,12 +6,23 @@ namespace TodoApi.Repositories;
 
 public class TodoListRepository(TodoContext _context) : ITodoListRepository
 {
-    public async Task<IList<TodoList>> GetAllAsync(bool includeItems = false)
+    public async Task<IList<TodoList>> GetAllAsync(
+        bool includeItems = false,
+        string? search = null,
+        int page = 1,
+        int pageSize = 10)
     {
         var query = _context.TodoList.AsNoTracking();
 
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(l => EF.Functions.Like(l.Name, $"%{search}%"));
+
         if (includeItems)
             query = query.Include(l => l.TodoItems);
+
+        query = query.OrderBy(l => l.Id)
+                     .Skip((page - 1) * pageSize)
+                     .Take(pageSize);
 
         return await query
             .Select(l => new TodoList

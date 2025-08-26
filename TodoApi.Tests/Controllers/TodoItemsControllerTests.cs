@@ -143,4 +143,53 @@ public class TodoItemsControllerTests
             Assert.Equal(3, dto.Id);
         }
     }
+
+    [Fact]
+    public async Task GetTodoItems_WhenSearched_ReturnsMatchingItems()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            context.TodoItems.Add(new TodoItem { Id = 3, TodoListId = 1, Description = "Home task", IsCompleted = false });
+            context.SaveChanges();
+
+            var itemRepository = new TodoItemRepository(context);
+            var listRepository = new TodoListRepository(context);
+            var controller = new TodoItemsController(itemRepository, listRepository);
+
+            var result = await controller.GetTodoItems(1, search: "Home");
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var items = Assert.IsAssignableFrom<IList<TodoItemDto>>(ok.Value);
+            Assert.Collection(items, i => Assert.Equal(3, i.Id));
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoItems_WhenPaginated_ReturnsCorrectPage()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            context.TodoItems.Add(new TodoItem { Id = 3, TodoListId = 1, Description = "Item 3", IsCompleted = false });
+            context.TodoItems.Add(new TodoItem { Id = 4, TodoListId = 1, Description = "Item 4", IsCompleted = false });
+            context.TodoItems.Add(new TodoItem { Id = 5, TodoListId = 1, Description = "Item 5", IsCompleted = false });
+            context.SaveChanges();
+
+            var itemRepository = new TodoItemRepository(context);
+            var listRepository = new TodoListRepository(context);
+            var controller = new TodoItemsController(itemRepository, listRepository);
+
+            var result = await controller.GetTodoItems(1, page: 2, pageSize: 2);
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var items = Assert.IsAssignableFrom<IList<TodoItemDto>>(ok.Value);
+            Assert.Equal(2, items.Count);
+            Assert.Collection(items,
+                i => Assert.Equal(4, i.Id),
+                i => Assert.Equal(5, i.Id));
+        }
+    }
 }

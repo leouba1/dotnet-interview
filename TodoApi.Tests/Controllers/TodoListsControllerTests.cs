@@ -71,6 +71,54 @@ public class TodoListsControllerTests
     }
 
     [Fact]
+    public async Task GetTodoLists_WhenSearched_ReturnsMatchingLists()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            context.TodoList.Add(new TodoList { Id = 3, Name = "Chores" });
+            context.TodoList.Add(new TodoList { Id = 4, Name = "Shopping" });
+            context.SaveChanges();
+
+            var repository = new TodoListRepository(context);
+            var controller = new TodoListsController(repository);
+
+            var result = await controller.GetTodoLists(search: "Shop");
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var lists = Assert.IsAssignableFrom<IList<TodoListDto>>(ok.Value);
+            Assert.Collection(lists, l => Assert.Equal("Shopping", l.Name));
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoLists_WhenPaginated_ReturnsCorrectPage()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            context.TodoList.Add(new TodoList { Id = 3, Name = "Task 3" });
+            context.TodoList.Add(new TodoList { Id = 4, Name = "Task 4" });
+            context.TodoList.Add(new TodoList { Id = 5, Name = "Task 5" });
+            context.SaveChanges();
+
+            var repository = new TodoListRepository(context);
+            var controller = new TodoListsController(repository);
+
+            var result = await controller.GetTodoLists(page: 2, pageSize: 2);
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var lists = Assert.IsAssignableFrom<IList<TodoListDto>>(ok.Value);
+            Assert.Equal(2, lists.Count);
+            Assert.Collection(lists,
+                l => Assert.Equal(3, l.Id),
+                l => Assert.Equal(4, l.Id));
+        }
+    }
+
+    [Fact]
     public async Task GetTodoList_WhenCalled_ReturnsTodoListById()
     {
         using (var context = new TodoContext(DatabaseContextOptions()))
