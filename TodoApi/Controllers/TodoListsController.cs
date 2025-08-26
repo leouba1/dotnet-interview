@@ -18,14 +18,26 @@ namespace TodoApi.Controllers
 
         // GET: api/todolists
         [HttpGet]
-        public async Task<ActionResult<IList<TodoList>>> GetTodoLists()
+        public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists()
         {
-            return Ok(await _repository.GetAllAsync());
+            var lists = await _repository.GetAllAsync();
+            var dtos = lists.Select(list => new TodoListDto
+            {
+                Id = list.Id,
+                Name = list.Name,
+                Items = list.TodoItems.Select(item => new TodoItemDto
+                {
+                    Description = item.Description,
+                    IsCompleted = item.IsCompleted
+                }).ToList()
+            }).ToList();
+
+            return Ok(dtos);
         }
 
         // GET: api/todolists/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TodoList>> GetTodoList(long id)
+        public async Task<ActionResult<TodoListDto>> GetTodoList(long id)
         {
             var todoList = await _repository.GetAsync(id);
 
@@ -34,7 +46,18 @@ namespace TodoApi.Controllers
                 return NotFound();
             }
 
-            return Ok(todoList);
+            var dto = new TodoListDto
+            {
+                Id = todoList.Id,
+                Name = todoList.Name,
+                Items = todoList.TodoItems.Select(item => new TodoItemDto
+                {
+                    Description = item.Description,
+                    IsCompleted = item.IsCompleted
+                }).ToList()
+            };
+
+            return Ok(dto);
         }
 
         // PUT: api/todolists/5
