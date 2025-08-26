@@ -5,11 +5,23 @@ namespace TodoApi.Repositories;
 
 public class TodoItemRepository(TodoContext _context) : ITodoItemRepository
 {
-    public async Task<IList<TodoItem>> GetByListIdAsync(long listId)
+    public async Task<IList<TodoItem>> GetByListIdAsync(
+        long listId,
+        string? search = null,
+        int page = 1,
+        int pageSize = 10)
     {
-        return await _context.TodoItems
+        var query = _context.TodoItems
             .Where(i => i.TodoListId == listId)
-            .AsNoTracking()
+            .AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(i => EF.Functions.Like(i.Description, $"%{search}%"));
+
+        return await query
+            .OrderBy(i => i.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
     }
 

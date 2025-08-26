@@ -11,9 +11,13 @@ public class TodoItemsController(ITodoItemRepository _itemRepository, ITodoListR
 {
     // GET: api/todolist/{id}/todoitems
     [HttpGet]
-    public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(long todolistId)
+    public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(
+        long todolistId,
+        [FromQuery] string? search = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var items = await _itemRepository.GetByListIdAsync(todolistId);
+        var items = await _itemRepository.GetByListIdAsync(todolistId, search, page, pageSize);
         return Ok(items.Select(item => item.ToDto()).ToList());
     }
 
