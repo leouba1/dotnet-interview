@@ -1,27 +1,20 @@
+using System.Collections.Generic;
 using TodoApi.Dtos.TodoLists;
+using TodoApi.Dtos.TodoItems;
 using TodoApi.Models;
 
 namespace TodoApi.Mappers;
 
 public static class TodoListMapper
 {
-    public static TodoListDto ToDto(this TodoList list)
+    public static TodoListDto ToDto(this TodoList list, bool includeItems = true)
     {
         return new TodoListDto
         {
             Id = list.Id,
             Name = list.Name,
-            Items = list.TodoItems.Select(item => item.ToDto()).ToList()
-        };
-    }
-
-    public static TodoListSummaryDto ToSummaryDto(this TodoList list)
-    {
-        return new TodoListSummaryDto
-        {
-            Id = list.Id,
-            Name = list.Name,
-            ItemCount = list.ItemCount
+            ItemCount = list.ItemCount != 0 ? list.ItemCount : list.TodoItems.Count,
+            Items = includeItems ? list.TodoItems.Select(item => item.ToDto()).ToList() : new List<TodoItemDto>()
         };
     }
 
