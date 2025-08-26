@@ -3,6 +3,7 @@ using TodoApi.Repositories;
 using TodoApi.Middleware;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
+using TodoApi.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 builder
@@ -33,6 +34,7 @@ builder
 // Service registration
 builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
 builder.Services.AddScoped<ITodoItemRepository, TodoItemRepository>();
+builder.Services.AddScoped<ValidateTodoListExistsAttribute>();
 
 // Logging
 var enableVerboseEf = builder.Configuration.GetValue("Logging:EnableVerboseEF", false);
