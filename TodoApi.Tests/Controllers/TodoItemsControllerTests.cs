@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TodoApi.Controllers;
 using TodoApi.Models;
 using TodoApi.Repositories;
+using TodoApi.Dtos.TodoItems;
 
 namespace TodoApi.Tests;
 
@@ -72,7 +73,7 @@ public class TodoItemsControllerTests
             var listRepository = new TodoListRepository(context);
             var controller = new TodoItemController(itemRepository, listRepository);
 
-            var payload = new Dtos.UpdateTodoItem { IsCompleted = true };
+            var payload = new UpdateTodoItem { IsCompleted = true };
 
             var result = await controller.PutTodoItem(1, 1, payload);
 
