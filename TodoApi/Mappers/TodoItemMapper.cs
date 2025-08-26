@@ -1,3 +1,4 @@
+using System;
 using TodoApi.Dtos.TodoItems;
 using TodoApi.Models;
 
@@ -11,7 +12,9 @@ public static class TodoItemMapper
         {
             Id = item.Id,
             Description = item.Description,
-            IsCompleted = item.IsCompleted
+            IsCompleted = item.IsCompleted,
+            CreatedAt = item.CreatedAt,
+            UpdatedAt = item.UpdatedAt,
         };
     }
 
@@ -21,7 +24,7 @@ public static class TodoItemMapper
         {
             TodoListId = todoListId,
             Description = dto.Description,
-            IsCompleted = dto.IsCompleted
+            IsCompleted = dto.IsCompleted,
         };
     }
 

@@ -1,3 +1,4 @@
+using System;
 using TodoApi.Dtos.TodoLists;
 using TodoApi.Dtos.TodoItems;
 using TodoApi.Models;
@@ -13,6 +14,8 @@ public static class TodoListMapper
             Id = list.Id,
             Name = list.Name,
             ItemCount = list.ItemCount != 0 ? list.ItemCount : list.TodoItems.Count,
+            CreatedAt = list.CreatedAt,
+            UpdatedAt = list.UpdatedAt,
             Items = includeItems ? list.TodoItems.Select(item => item.ToDto()).ToList() : new List<TodoItemDto>()
         };
     }
@@ -21,7 +24,7 @@ public static class TodoListMapper
     {
         return new TodoList
         {
-            Name = dto.Name
+            Name = dto.Name,
         };
     }
 
