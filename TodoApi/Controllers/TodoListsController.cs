@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.Dtos.TodoLists;
 using TodoApi.Mappers;
@@ -20,16 +21,17 @@ public class TodoListsController(
     /// </summary>
     /// <param name="includeItems">Whether to include todo items in the response.</param>
     /// <param name="search">Optional search term to filter lists.</param>
-    /// <param name="page">The page number for pagination.</param>
-    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="page">The page number for pagination (must be at least 1).</param>
+    /// <param name="pageSize">The number of items per page (must be at least 1).</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A list of todo lists.</returns>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TodoListDto>))]
     public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists(
         [FromQuery] bool includeItems = false,
         [FromQuery] string? search = null,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
+        [FromQuery, Range(1, int.MaxValue)] int page = 1,
+        [FromQuery, Range(1, int.MaxValue)] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving todo lists");
@@ -43,6 +45,7 @@ public class TodoListsController(
     /// Retrieves a specific todo list.
     /// </summary>
     /// <param name="id">The identifier of the todo list.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The requested todo list.</returns>
     /// <response code="200">The requested todo list.</response>
     /// <response code="404">The todo list was not found.</response>
@@ -65,6 +68,7 @@ public class TodoListsController(
     /// </summary>
     /// <param name="id">The identifier of the todo list.</param>
     /// <param name="payload">Updated fields for the todo list.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The updated todo list.</returns>
     /// <response code="200">The todo list was updated successfully.</response>
     /// <response code="404">The todo list was not found.</response>
@@ -90,6 +94,7 @@ public class TodoListsController(
     /// Creates a new todo list.
     /// </summary>
     /// <param name="payload">Data for the new list.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The created todo list.</returns>
     /// <response code="201">The todo list was created successfully.</response>
     [HttpPost]
@@ -108,6 +113,7 @@ public class TodoListsController(
     /// Deletes a todo list.
     /// </summary>
     /// <param name="id">The identifier of the todo list.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>No content on success.</returns>
     /// <response code="204">The todo list was deleted.</response>
     /// <response code="404">The todo list was not found.</response>
