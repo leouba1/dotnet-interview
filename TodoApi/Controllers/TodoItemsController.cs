@@ -7,12 +7,12 @@ namespace TodoApi.Controllers
 {
     [Route("api/todolist/{todolistId}/todoitems")]
     [ApiController]
-    public class TodoItemController : ControllerBase
+    public class TodoItemsController : ControllerBase
     {
         private readonly ITodoItemRepository _itemRepository;
         private readonly ITodoListRepository _listRepository;
 
-        public TodoItemController(ITodoItemRepository items, ITodoListRepository lists)
+        public TodoItemsController(ITodoItemRepository items, ITodoListRepository lists)
         {
             _itemRepository = items;
             _listRepository = lists;
