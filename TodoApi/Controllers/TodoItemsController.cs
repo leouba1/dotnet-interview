@@ -27,7 +27,7 @@ public class TodoItemsController(
     /// <param name="pageSize">The number of items per page.</param>
     /// <returns>A list of todo items.</returns>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(IEnumerable<TodoItemDto>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TodoItemDto>))]
     public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(
         long todolistId,
         [FromQuery] string? search = null,
@@ -48,7 +48,7 @@ public class TodoItemsController(
     /// <response code="200">The requested todo item.</response>
     /// <response code="404">The todo item was not found.</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(TodoItemDto))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoItemDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id)
     {

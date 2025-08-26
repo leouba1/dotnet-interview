@@ -26,7 +26,7 @@ public class TodoListsController(
     /// <param name="pageSize">The number of items per page.</param>
     /// <returns>A list of todo lists.</returns>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(IEnumerable<TodoListDto>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TodoListDto>))]
     public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists(
         [FromQuery] bool includeItems = false,
         [FromQuery] string? search = null,
@@ -48,7 +48,7 @@ public class TodoListsController(
     /// <response code="200">The requested todo list.</response>
     /// <response code="404">The todo list was not found.</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(TodoListDto))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoListDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoListDto>> GetTodoList(long id)
     {
@@ -70,7 +70,7 @@ public class TodoListsController(
     /// <response code="200">The todo list was updated successfully.</response>
     /// <response code="404">The todo list was not found.</response>
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(TodoListDto))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoListDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
     {
