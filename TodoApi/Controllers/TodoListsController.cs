@@ -11,10 +11,10 @@ public class TodoListsController(ITodoListRepository _repository) : ControllerBa
 {
     // GET: api/todolists
     [HttpGet]
-    public async Task<ActionResult<IList<TodoListSummaryDto>>> GetTodoLists()
+    public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists()
     {
         var lists = await _repository.GetAllAsync();
-        var dtos = lists.Select(list => list.ToSummaryDto()).ToList();
+        var dtos = lists.Select(list => list.ToDto(includeItems: false)).ToList();
 
         return Ok(dtos);
     }
