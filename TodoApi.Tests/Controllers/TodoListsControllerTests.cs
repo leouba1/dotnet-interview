@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using TodoApi.Controllers;
 using TodoApi.Models;
 using TodoApi.Repositories;
@@ -24,6 +25,12 @@ public class TodoListsControllerTests
         context.SaveChanges();
     }
 
+    private TodoListsController CreateController(TodoContext context)
+    {
+        var repository = new TodoListRepository(context);
+        return new TodoListsController(repository, NullLogger<TodoListsController>.Instance);
+    }
+
     [Fact]
     public async Task GetTodoList_WhenCalled_ReturnsTodoListList()
     {
@@ -31,8 +38,7 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoLists();
 
@@ -57,8 +63,7 @@ public class TodoListsControllerTests
             context.TodoItems.Add(new TodoItem { Id = 1, TodoListId = 1, Description = "Item 1", IsCompleted = false });
             context.SaveChanges();
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoLists(true);
 
@@ -81,8 +86,7 @@ public class TodoListsControllerTests
             context.TodoList.Add(new TodoList { Id = 4, Name = "Shopping" });
             context.SaveChanges();
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoLists(search: "Shop");
 
@@ -104,8 +108,7 @@ public class TodoListsControllerTests
             context.TodoItems.Add(new TodoItem { Id = 1, TodoListId = 3, Description = "Buy milk" });
             context.SaveChanges();
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoLists(search: "milk");
 
@@ -127,8 +130,7 @@ public class TodoListsControllerTests
             context.TodoList.Add(new TodoList { Id = 5, Name = "Task 5" });
             context.SaveChanges();
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoLists(page: 2, pageSize: 2);
 
@@ -148,8 +150,7 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoList(1);
 
@@ -165,8 +166,7 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.PutTodoList(
                 3,
@@ -184,8 +184,7 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var todoList = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
             var result = await controller.PutTodoList(
@@ -204,8 +203,7 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.PostTodoList(new CreateTodoList { Name = "Task 3" });
 
@@ -221,8 +219,7 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var repository = new TodoListRepository(context);
-            var controller = new TodoListsController(repository);
+            var controller = CreateController(context);
 
             var result = await controller.DeleteTodoList(2);
 
