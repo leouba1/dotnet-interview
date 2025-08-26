@@ -1,7 +1,10 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace TodoApi.Dtos.TodoItems;
 
 public class CreateTodoItem
 {
-    public required string Description { get; set; }
+    [Required(ErrorMessage = "Description is required.")]
+    public string Description { get; set; } = null!;
     public bool IsCompleted { get; set; }
 }
