@@ -34,7 +34,7 @@ public class TodoItemsControllerTests
 
             var itemRepository = new TodoItemRepository(context);
             var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemController(itemRepository, listRepository);
+            var controller = new TodoItemsController(itemRepository, listRepository);
 
             var result = await controller.DeleteTodoItem(1, 1);
 
@@ -52,7 +52,7 @@ public class TodoItemsControllerTests
 
             var itemRepository = new TodoItemRepository(context);
             var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemController(itemRepository, listRepository);
+            var controller = new TodoItemsController(itemRepository, listRepository);
 
             var result = await controller.DeleteTodoItem(1, 2);
 
@@ -70,7 +70,7 @@ public class TodoItemsControllerTests
 
             var itemRepository = new TodoItemRepository(context);
             var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemController(itemRepository, listRepository);
+            var controller = new TodoItemsController(itemRepository, listRepository);
 
             var payload = new Dtos.UpdateTodoItem { IsCompleted = true };
 
