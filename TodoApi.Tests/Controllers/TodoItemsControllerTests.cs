@@ -5,6 +5,7 @@ using TodoApi.Controllers;
 using TodoApi.Dtos;
 using TodoApi.Models;
 using TodoApi.Repositories;
+using TodoApi.Dtos.TodoItems;
 
 namespace TodoApi.Tests;
 

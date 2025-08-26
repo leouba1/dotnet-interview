@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using TodoApi.Dtos;
+using TodoApi.Dtos.TodoItems;
 using TodoApi.Models;
 using TodoApi.Repositories;
 

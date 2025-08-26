@@ -1,4 +1,4 @@
-namespace TodoApi.Dtos;
+namespace TodoApi.Dtos.TodoItems;
 
 public class TodoItemDto
 {
