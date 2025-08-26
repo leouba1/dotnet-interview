@@ -7,7 +7,15 @@ public class TodoListRepository(TodoContext _context) : ITodoListRepository
 {
     public async Task<IList<TodoList>> GetAllAsync()
     {
-        return await _context.TodoList.AsNoTracking().ToListAsync();
+        return await _context.TodoList
+            .AsNoTracking()
+            .Select(l => new TodoList
+            {
+                Id = l.Id,
+                Name = l.Name,
+                ItemCount = l.TodoItems.Count
+            })
+            .ToListAsync();
     }
 
     public Task<TodoList?> GetAsync(long id, bool track = false)

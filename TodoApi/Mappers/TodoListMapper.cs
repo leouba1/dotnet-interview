@@ -17,6 +17,16 @@ public static class TodoListMapper
         };
     }
 
+    public static TodoListSummaryDto ToSummaryDto(this TodoList list)
+    {
+        return new TodoListSummaryDto
+        {
+            Id = list.Id,
+            Name = list.Name,
+            ItemCount = list.ItemCount
+        };
+    }
+
     public static TodoList ToModel(this CreateTodoList dto)
     {
         return new TodoList
