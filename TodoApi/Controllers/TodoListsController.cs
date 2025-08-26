@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.Dtos.TodoLists;
-using TodoApi.Dtos.TodoItems;
-using TodoApi.Models;
 using TodoApi.Mappers;
 using TodoApi.Repositories;
 

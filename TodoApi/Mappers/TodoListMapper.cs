@@ -1,5 +1,3 @@
-using TodoApi.Dtos;
-using TodoApi.Dtos.TodoItems;
 using TodoApi.Dtos.TodoLists;
 using TodoApi.Models;
 
