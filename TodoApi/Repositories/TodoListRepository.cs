@@ -15,7 +15,9 @@ public class TodoListRepository(TodoContext _context) : ITodoListRepository
         var query = _context.TodoList.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(search))
-            query = query.Where(l => EF.Functions.Like(l.Name, $"%{search}%"));
+            query = query.Where(l =>
+                EF.Functions.Like(l.Name, $"%{search}%") ||
+                l.TodoItems.Any(i => EF.Functions.Like(i.Description, $"%{search}%")));
 
         if (includeItems)
             query = query.Include(l => l.TodoItems);
