@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Repositories;
+using TodoApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder
@@ -16,6 +17,8 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 var app = builder.Build();
+
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseAuthorization();
 app.MapControllers();
