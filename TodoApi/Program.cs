@@ -3,6 +3,7 @@ using TodoApi.Repositories;
 using TodoApi.Middleware;
 using System.Reflection;
 using System.IO;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 builder
@@ -16,7 +17,19 @@ builder
         var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
         c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
     })
-    .AddControllers();
+    .AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+        {
+            if (context.ModelState.ErrorCount == 0)
+            {
+                return new BadRequestObjectResult("Request body is required.");
+            }
+
+            return new BadRequestObjectResult(new ValidationProblemDetails(context.ModelState));
+        };
+    });
 
 builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
 builder.Services.AddScoped<ITodoItemRepository, TodoItemRepository>();
