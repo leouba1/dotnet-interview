@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using TodoApi.Controllers;
+using TodoApi.Dtos;
 using TodoApi.Models;
 using TodoApi.Repositories;
 
@@ -72,7 +74,7 @@ public class TodoItemsControllerTests
             var listRepository = new TodoListRepository(context);
             var controller = new TodoItemsController(itemRepository, listRepository);
 
-            var payload = new Dtos.UpdateTodoItem { IsCompleted = true };
+            var payload = new UpdateTodoItem { IsCompleted = true };
 
             var result = await controller.PutTodoItem(1, 1, payload);
 
@@ -81,6 +83,65 @@ public class TodoItemsControllerTests
             Assert.NotNull(item);
             Assert.True(item.IsCompleted);
             Assert.Equal("Item 1", item.Description);
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoItems_WhenListExists_ReturnsDtoWithId()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            var itemRepository = new TodoItemRepository(context);
+            var listRepository = new TodoListRepository(context);
+            var controller = new TodoItemController(itemRepository, listRepository);
+
+            var result = await controller.GetTodoItems(1);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var dtos = Assert.IsAssignableFrom<IList<TodoItemDto>>(okResult.Value);
+            Assert.Collection(dtos, item => Assert.Equal(1, item.Id));
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoItem_WhenItemExists_ReturnsDtoWithId()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            var itemRepository = new TodoItemRepository(context);
+            var listRepository = new TodoListRepository(context);
+            var controller = new TodoItemController(itemRepository, listRepository);
+
+            var result = await controller.GetTodoItem(1, 1);
+
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            var dto = Assert.IsType<TodoItemDto>(okResult.Value);
+            Assert.Equal(1, dto.Id);
+        }
+    }
+
+    [Fact]
+    public async Task PostTodoItem_WhenCalled_ReturnsDtoWithId()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            var itemRepository = new TodoItemRepository(context);
+            var listRepository = new TodoListRepository(context);
+            var controller = new TodoItemController(itemRepository, listRepository);
+
+            var payload = new CreateTodoItem { Description = "Item 3", IsCompleted = false };
+
+            var result = await controller.PostTodoItem(1, payload);
+
+            var created = Assert.IsType<CreatedAtActionResult>(result.Result);
+            var dto = Assert.IsType<TodoItemDto>(created.Value);
+            Assert.Equal(3, dto.Id);
         }
     }
 }

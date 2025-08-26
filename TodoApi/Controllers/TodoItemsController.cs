@@ -25,6 +25,7 @@ namespace TodoApi.Controllers
             var items = await _itemRepository.GetByListIdAsync(todolistId);
             return Ok(items.Select(item => new TodoItemDto
             {
+                Id = item.Id,
                 Description = item.Description,
                 IsCompleted = item.IsCompleted
             }).ToList());
@@ -43,6 +44,7 @@ namespace TodoApi.Controllers
 
             var dto = new TodoItemDto
             {
+                Id = todoItem.Id,
                 Description = todoItem.Description,
                 IsCompleted = todoItem.IsCompleted
             };
@@ -90,6 +92,7 @@ namespace TodoApi.Controllers
 
             var dto = new TodoItemDto
             {
+                Id = todoItem.Id,
                 Description = todoItem.Description,
                 IsCompleted = todoItem.IsCompleted
             };
