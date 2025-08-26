@@ -39,7 +39,34 @@ public class TodoListsControllerTests
             Assert.IsType<OkObjectResult>(result.Result);
             var value = (result.Result as OkObjectResult).Value as IList<TodoListDto>;
             Assert.Equal(2, value.Count);
-            Assert.All(value, dto => Assert.Equal(0, dto.ItemCount));
+            Assert.All(value, dto =>
+            {
+                Assert.Equal(0, dto.ItemCount);
+                Assert.Empty(dto.Items);
+            });
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoList_WhenIncludeItemsTrue_ReturnsItems()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            context.TodoItems.Add(new TodoItem { Id = 1, TodoListId = 1, Description = "Item 1", IsCompleted = false });
+            context.SaveChanges();
+
+            var repository = new TodoListRepository(context);
+            var controller = new TodoListsController(repository);
+
+            var result = await controller.GetTodoLists(true);
+
+            Assert.IsType<OkObjectResult>(result.Result);
+            var value = (result.Result as OkObjectResult).Value as IList<TodoListDto>;
+            var list = value.First(l => l.Id == 1);
+            Assert.Single(list.Items);
+            Assert.Equal(1, list.ItemCount);
         }
     }
 
