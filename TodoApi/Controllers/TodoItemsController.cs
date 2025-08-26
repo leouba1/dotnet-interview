@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.Dtos.TodoItems;
 using TodoApi.Mappers;
@@ -9,7 +10,7 @@ namespace TodoApi.Controllers;
 /// <summary>
 /// API for managing todo items within a todo list.
 /// </summary>
-[Route("api/todolist/{todolistId}/todoitems")]
+[Route("api/todolists/{todolistId}/todoitems")]
 [ApiController]
 [ServiceFilter(typeof(ValidateTodoListExistsAttribute))]
 public class TodoItemsController(
@@ -22,8 +23,9 @@ public class TodoItemsController(
     /// </summary>
     /// <param name="todolistId">The identifier of the todo list.</param>
     /// <param name="search">Optional search term to filter items.</param>
-    /// <param name="page">The page number for pagination.</param>
-    /// <param name="pageSize">The number of items per page.</param>
+    /// <param name="page">The page number for pagination (must be at least 1).</param>
+    /// <param name="pageSize">The number of items per page (must be at least 1).</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>A list of todo items.</returns>
     /// <response code="404">The todo list was not found.</response>
     [HttpGet]
@@ -32,8 +34,8 @@ public class TodoItemsController(
     public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(
         long todolistId,
         [FromQuery] string? search = null,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10,
+        [FromQuery, Range(1, int.MaxValue)] int page = 1,
+        [FromQuery, Range(1, int.MaxValue)] int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving items for list {ListId}", todolistId);
@@ -47,6 +49,7 @@ public class TodoItemsController(
     /// </summary>
     /// <param name="todolistId">The identifier of the todo list.</param>
     /// <param name="id">The identifier of the todo item.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The requested todo item.</returns>
     /// <response code="200">The requested todo item.</response>
     /// <response code="404">The todo item was not found.</response>
@@ -55,6 +58,7 @@ public class TodoItemsController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Retrieving todo item {ItemId} for list {ListId}", id, todolistId);
         if (await _itemRepository.GetAsync(todolistId, id, cancellationToken: cancellationToken) is not { } todoItem)
         {
             _logger.LogWarning("Todo item {ItemId} for list {ListId} not found", id, todolistId);
@@ -70,6 +74,7 @@ public class TodoItemsController(
     /// <param name="todolistId">The identifier of the todo list.</param>
     /// <param name="id">The identifier of the todo item.</param>
     /// <param name="payload">Updated fields for the todo item.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>No content on success.</returns>
     /// <response code="204">The todo item was updated successfully.</response>
     /// <response code="404">The todo item was not found.</response>
@@ -97,6 +102,7 @@ public class TodoItemsController(
     /// </summary>
     /// <param name="todolistId">The identifier of the todo list.</param>
     /// <param name="payload">Data for the new todo item.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>The created todo item.</returns>
     /// <response code="201">The todo item was created successfully.</response>
     /// <response code="404">The parent todo list was not found.</response>
@@ -118,6 +124,7 @@ public class TodoItemsController(
     /// </summary>
     /// <param name="todolistId">The identifier of the todo list.</param>
     /// <param name="id">The identifier of the todo item.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
     /// <returns>No content on success.</returns>
     /// <response code="204">The todo item was deleted.</response>
     /// <response code="404">The todo item was not found.</response>
