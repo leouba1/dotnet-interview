@@ -57,7 +57,7 @@ namespace TodoApi.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult> PutTodoItem(long todolistId, long id, UpdateTodoItem payload)
         {
-            var todoItem = await _itemRepository.GetAsync(todolistId, id);
+            var todoItem = await _itemRepository.GetAsync(todolistId, id, track: true);
             if (todoItem == null)
                 return NotFound();
 
@@ -104,7 +104,7 @@ namespace TodoApi.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteTodoItem(long todolistId, long id)
         {
-            var todoItem = await _itemRepository.GetAsync(todolistId, id);
+            var todoItem = await _itemRepository.GetAsync(todolistId, id, track: true);
 
             if (todoItem == null)
             {
