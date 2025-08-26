@@ -21,6 +21,10 @@ To run the TodoApi in your local environment:
 
 `dotnet run --project TodoApi`
 
+## API Documentation
+
+The API exposes a Swagger UI for interactive documentation. Once the application is running, navigate to `/swagger` to explore and test endpoints.
+
 ## Test
 
 To run tests:

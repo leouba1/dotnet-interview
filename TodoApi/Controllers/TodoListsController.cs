@@ -6,6 +6,9 @@ using TodoApi.Repositories;
 
 namespace TodoApi.Controllers;
 
+/// <summary>
+/// API for managing todo lists.
+/// </summary>
 [Route("api/todolists")]
 [ApiController]
 public class TodoListsController(
@@ -13,7 +16,14 @@ public class TodoListsController(
     ILogger<TodoListsController> _logger
 ) : ControllerBase
 {
-    // GET: api/todolists
+    /// <summary>
+    /// Retrieves todo lists with optional pagination and search.
+    /// </summary>
+    /// <param name="includeItems">Whether to include todo items in the response.</param>
+    /// <param name="search">Optional search term to filter lists.</param>
+    /// <param name="page">The page number for pagination.</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <returns>A list of todo lists.</returns>
     [HttpGet]
     public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists(
         [FromQuery] bool includeItems = false,
@@ -28,7 +38,11 @@ public class TodoListsController(
         return Ok(dtos);
     }
 
-    // GET: api/todolists/5
+    /// <summary>
+    /// Retrieves a specific todo list.
+    /// </summary>
+    /// <param name="id">The identifier of the todo list.</param>
+    /// <returns>The requested todo list.</returns>
     [HttpGet("{id}")]
     public async Task<ActionResult<TodoListDto>> GetTodoList(long id)
     {
@@ -41,8 +55,12 @@ public class TodoListsController(
         return Ok(todoList.ToDto());
     }
 
-    // PUT: api/todolists/5
-    // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    /// <summary>
+    /// Updates a todo list.
+    /// </summary>
+    /// <param name="id">The identifier of the todo list.</param>
+    /// <param name="payload">Updated fields for the todo list.</param>
+    /// <returns>The updated todo list.</returns>
     [HttpPut("{id}")]
     public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
     {
@@ -59,8 +77,11 @@ public class TodoListsController(
         return Ok(todoList.ToDto());
     }
 
-    // POST: api/todolists
-    // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    /// <summary>
+    /// Creates a new todo list.
+    /// </summary>
+    /// <param name="payload">Data for the new list.</param>
+    /// <returns>The created todo list.</returns>
     [HttpPost]
     public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload)
     {
@@ -72,7 +93,11 @@ public class TodoListsController(
         return CreatedAtAction(nameof(GetTodoList), new { id = todoList.Id }, todoList.ToDto());
     }
 
-    // DELETE: api/todolists/5
+    /// <summary>
+    /// Deletes a todo list.
+    /// </summary>
+    /// <param name="id">The identifier of the todo list.</param>
+    /// <returns>No content on success.</returns>
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteTodoList(long id)
     {
