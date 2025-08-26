@@ -30,8 +30,7 @@ public class TodoItemsControllerTests
     private TodoItemsController CreateController(TodoContext context)
     {
         var itemRepository = new TodoItemRepository(context);
-        var listRepository = new TodoListRepository(context);
-        return new TodoItemsController(itemRepository, listRepository, NullLogger<TodoItemsController>.Instance);
+        return new TodoItemsController(itemRepository, NullLogger<TodoItemsController>.Instance);
     }
 
     [Fact]

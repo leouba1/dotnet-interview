@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TodoApi.Dtos.TodoItems;
 using TodoApi.Mappers;
 using TodoApi.Repositories;
+using TodoApi.Filters;
 
 namespace TodoApi.Controllers;
 
@@ -10,9 +11,9 @@ namespace TodoApi.Controllers;
 /// </summary>
 [Route("api/todolist/{todolistId}/todoitems")]
 [ApiController]
+[ServiceFilter(typeof(ValidateTodoListExistsAttribute))]
 public class TodoItemsController(
     ITodoItemRepository _itemRepository,
-    ITodoListRepository _listRepository,
     ILogger<TodoItemsController> _logger
 ) : ControllerBase
 {
@@ -24,8 +25,10 @@ public class TodoItemsController(
     /// <param name="page">The page number for pagination.</param>
     /// <param name="pageSize">The number of items per page.</param>
     /// <returns>A list of todo items.</returns>
+    /// <response code="404">The todo list was not found.</response>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TodoItemDto>))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(
         long todolistId,
         [FromQuery] string? search = null,
@@ -34,6 +37,7 @@ public class TodoItemsController(
         CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving items for list {ListId}", todolistId);
+
         var items = await _itemRepository.GetByListIdAsync(todolistId, search, page, pageSize, cancellationToken);
         return Ok(items.Select(item => item.ToDto()).ToList());
     }
@@ -101,12 +105,6 @@ public class TodoItemsController(
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoItemDto>> PostTodoItem(long todolistId, CreateTodoItem payload, CancellationToken cancellationToken = default)
     {
-        if (await _listRepository.GetAsync(todolistId, cancellationToken: cancellationToken) is not { } todoList)
-        {
-            _logger.LogWarning("Todo list {ListId} not found when creating item", todolistId);
-            return NotFound();
-        }
-
         var todoItem = payload.ToModel(todolistId);
 
         await _itemRepository.AddAsync(todoItem, cancellationToken);

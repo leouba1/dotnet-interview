@@ -3,6 +3,7 @@ using TodoApi.Repositories;
 using TodoApi.Middleware;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
+using TodoApi.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 builder
@@ -32,6 +33,7 @@ builder
 
 builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
 builder.Services.AddScoped<ITodoItemRepository, TodoItemRepository>();
+builder.Services.AddScoped<ValidateTodoListExistsAttribute>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
