@@ -37,7 +37,7 @@ public class TodoListsControllerTests
             var result = await controller.GetTodoLists();
 
             Assert.IsType<OkObjectResult>(result.Result);
-            Assert.Equal(2, ((result.Result as OkObjectResult).Value as IList<TodoListDto>).Count);
+            Assert.Equal(2, ((result.Result as OkObjectResult).Value as IList<TodoListSummaryDto>).Count);
         }
     }
 
