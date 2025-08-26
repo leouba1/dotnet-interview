@@ -30,11 +30,26 @@ builder
         };
     });
 
+// Service registration
 builder.Services.AddScoped<ITodoListRepository, TodoListRepository>();
 builder.Services.AddScoped<ITodoItemRepository, TodoItemRepository>();
 
+// Logging
+var enableVerboseEf = builder.Configuration.GetValue("Logging:EnableVerboseEF", false);
+var includeScopes = builder.Configuration.GetValue("Logging:Console:IncludeScopes", true);
+
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+builder.Logging.AddSimpleConsole(o =>
+{
+    o.IncludeScopes = includeScopes;
+    o.SingleLine = false;
+    o.TimestampFormat = "hh:mm:ss ";
+    o.UseUtcTimestamp = true;
+});
+builder.Logging.AddFilter(
+    "Microsoft.EntityFrameworkCore.Database.Command",
+    enableVerboseEf ? LogLevel.Information : LogLevel.Warning);
+
 
 var app = builder.Build();
 
@@ -46,6 +61,7 @@ app.UseSwaggerUI();
 app.UseAuthorization();
 app.MapControllers();
 
+// Run migrations on startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<TodoContext>();
