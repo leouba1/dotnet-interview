@@ -81,13 +81,18 @@ namespace TodoApi.Controllers
         // POST: api/todolists
         // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<TodoList>> PostTodoList(CreateTodoList payload)
+        public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload)
         {
             var todoList = new TodoList { Name = payload.Name };
 
             await _repository.AddAsync(todoList);
 
-            return CreatedAtAction(nameof(PostTodoList), new { id = todoList.Id }, todoList);
+            var dto = new TodoListDto
+            {
+                Name = todoList.Name
+            };
+
+            return CreatedAtAction(nameof(GetTodoList), new { id = todoList.Id }, dto);
         }
 
         // DELETE: api/todolists/5
