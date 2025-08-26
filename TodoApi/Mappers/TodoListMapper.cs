@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using TodoApi.Dtos.TodoLists;
 using TodoApi.Dtos.TodoItems;
 using TodoApi.Models;

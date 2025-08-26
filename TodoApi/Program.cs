@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using TodoApi.Repositories;
 using TodoApi.Middleware;
 using System.Reflection;
-using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 builder

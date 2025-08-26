@@ -5,11 +5,7 @@ namespace TodoApi.Repositories;
 
 public class TodoItemRepository(TodoContext _context) : ITodoItemRepository
 {
-    public async Task<IList<TodoItem>> GetByListIdAsync(
-        long listId,
-        string? search = null,
-        int page = 1,
-        int pageSize = 10)
+    public async Task<IList<TodoItem>> GetByListIdAsync(long listId, string? search = null, int page = 1, int pageSize = 10)
     {
         var query = _context.TodoItems
             .Where(i => i.TodoListId == listId)
@@ -47,8 +43,5 @@ public class TodoItemRepository(TodoContext _context) : ITodoItemRepository
         await _context.SaveChangesAsync();
     }
 
-    public Task SaveChangesAsync()
-    {
-        return _context.SaveChangesAsync();
-    }
+    public Task SaveChangesAsync() => _context.SaveChangesAsync();
 }

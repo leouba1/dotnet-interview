@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using TodoApi.Models;
 
@@ -6,11 +5,7 @@ namespace TodoApi.Repositories;
 
 public class TodoListRepository(TodoContext _context) : ITodoListRepository
 {
-    public async Task<IList<TodoList>> GetAllAsync(
-        bool includeItems = false,
-        string? search = null,
-        int page = 1,
-        int pageSize = 10)
+    public async Task<IList<TodoList>> GetAllAsync(bool includeItems = false, string? search = null, int page = 1, int pageSize = 10)
     {
         var query = _context.TodoList.AsNoTracking();
 
@@ -60,8 +55,5 @@ public class TodoListRepository(TodoContext _context) : ITodoListRepository
         await _context.SaveChangesAsync();
     }
 
-    public Task SaveChangesAsync()
-    {
-        return _context.SaveChangesAsync();
-    }
+    public Task SaveChangesAsync() => _context.SaveChangesAsync();
 }
