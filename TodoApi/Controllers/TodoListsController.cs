@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.Dtos.TodoLists;
-using TodoApi.Models;
+using TodoApi.Mappers;
 using TodoApi.Repositories;
 
 namespace TodoApi.Controllers
@@ -21,16 +21,7 @@ namespace TodoApi.Controllers
         public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists()
         {
             var lists = await _repository.GetAllAsync();
-            var dtos = lists.Select(list => new TodoListDto
-            {
-                Id = list.Id,
-                Name = list.Name,
-                Items = list.TodoItems.Select(item => new TodoItemDto
-                {
-                    Description = item.Description,
-                    IsCompleted = item.IsCompleted
-                }).ToList()
-            }).ToList();
+            var dtos = lists.Select(list => list.ToDto()).ToList();
 
             return Ok(dtos);
         }
@@ -46,18 +37,7 @@ namespace TodoApi.Controllers
                 return NotFound();
             }
 
-            var dto = new TodoListDto
-            {
-                Id = todoList.Id,
-                Name = todoList.Name,
-                Items = todoList.TodoItems.Select(item => new TodoItemDto
-                {
-                    Description = item.Description,
-                    IsCompleted = item.IsCompleted
-                }).ToList()
-            };
-
-            return Ok(dto);
+            return Ok(todoList.ToDto());
         }
 
         // PUT: api/todolists/5
@@ -72,10 +52,10 @@ namespace TodoApi.Controllers
                 return NotFound();
             }
 
-            todoList.Name = payload.Name;
+            payload.UpdateModel(todoList);
             await _repository.SaveChangesAsync();
 
-            return Ok(todoList);
+            return Ok(todoList.ToDto());
         }
 
         // POST: api/todolists
@@ -83,16 +63,11 @@ namespace TodoApi.Controllers
         [HttpPost]
         public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload)
         {
-            var todoList = new TodoList { Name = payload.Name };
+            var todoList = payload.ToModel();
 
             await _repository.AddAsync(todoList);
 
-            var dto = new TodoListDto
-            {
-                Name = todoList.Name
-            };
-
-            return CreatedAtAction(nameof(GetTodoList), new { id = todoList.Id }, dto);
+            return CreatedAtAction(nameof(GetTodoList), new { id = todoList.Id }, todoList.ToDto());
         }
 
         // DELETE: api/todolists/5

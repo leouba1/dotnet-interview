@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.Dtos.TodoItems;
-using TodoApi.Models;
+using TodoApi.Mappers;
 using TodoApi.Repositories;
 
 namespace TodoApi.Controllers
@@ -23,12 +23,7 @@ namespace TodoApi.Controllers
         public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(long todolistId)
         {
             var items = await _itemRepository.GetByListIdAsync(todolistId);
-            return Ok(items.Select(item => new TodoItemDto
-            {
-                Id = item.Id,
-                Description = item.Description,
-                IsCompleted = item.IsCompleted
-            }).ToList());
+            return Ok(items.Select(item => item.ToDto()).ToList());
         }
 
         // GET: api/todolist/{id}/todoitems/5
@@ -42,14 +37,7 @@ namespace TodoApi.Controllers
                 return NotFound();
             }
 
-            var dto = new TodoItemDto
-            {
-                Id = todoItem.Id,
-                Description = todoItem.Description,
-                IsCompleted = todoItem.IsCompleted
-            };
-
-            return Ok(dto);
+            return Ok(todoItem.ToDto());
         }
 
         // PUT: api/todoitems/5
@@ -61,11 +49,7 @@ namespace TodoApi.Controllers
             if (todoItem == null)
                 return NotFound();
 
-            if (payload.Description is not null)
-                todoItem.Description = payload.Description;
-
-            if (payload.IsCompleted.HasValue)
-                todoItem.IsCompleted = payload.IsCompleted.Value;
+            payload.UpdateModel(todoItem);
 
             await _itemRepository.SaveChangesAsync();
 
@@ -81,23 +65,11 @@ namespace TodoApi.Controllers
             if (todoList == null)
                 return NotFound();
 
-            var todoItem = new TodoItem
-            {
-                TodoListId = todolistId,
-                Description = payload.Description,
-                IsCompleted = payload.IsCompleted
-            };
+            var todoItem = payload.ToModel(todolistId);
 
             await _itemRepository.AddAsync(todoItem);
 
-            var dto = new TodoItemDto
-            {
-                Id = todoItem.Id,
-                Description = todoItem.Description,
-                IsCompleted = todoItem.IsCompleted
-            };
-
-            return CreatedAtAction(nameof(GetTodoItem), new { todolistId, id = todoItem.Id }, dto);
+            return CreatedAtAction(nameof(GetTodoItem), new { todolistId, id = todoItem.Id }, todoItem.ToDto());
         }
 
         // DELETE: api/todolist/{todolistId}/todoitems/{id}
