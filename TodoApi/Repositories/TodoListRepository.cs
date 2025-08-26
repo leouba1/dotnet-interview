@@ -17,11 +17,15 @@ public class TodoListRepository : ITodoListRepository
         return await _context.TodoList.AsNoTracking().ToListAsync();
     }
 
-    public Task<TodoList?> GetAsync(long id)
+    public Task<TodoList?> GetAsync(long id, bool track = false)
     {
-        return _context.TodoList
-            .Include(l => l.TodoItems)
-            .FirstOrDefaultAsync(l => l.Id == id);
+        IQueryable<TodoList> query = _context.TodoList
+            .Include(l => l.TodoItems);
+
+        if (!track)
+            query = query.AsNoTracking();
+
+        return query.FirstOrDefaultAsync(l => l.Id == id);
     }
 
     public async Task AddAsync(TodoList list)

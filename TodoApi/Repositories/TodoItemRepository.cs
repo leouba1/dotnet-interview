@@ -20,10 +20,14 @@ public class TodoItemRepository : ITodoItemRepository
             .ToListAsync();
     }
 
-    public async Task<TodoItem?> GetAsync(long listId, long id)
+    public Task<TodoItem?> GetAsync(long listId, long id, bool track = false)
     {
-        return await _context.TodoItems
-            .FirstOrDefaultAsync(i => i.TodoListId == listId && i.Id == id);
+        IQueryable<TodoItem> query = _context.TodoItems;
+
+        if (!track)
+            query = query.AsNoTracking();
+
+        return query.FirstOrDefaultAsync(i => i.TodoListId == listId && i.Id == id);
     }
 
     public async Task AddAsync(TodoItem item)

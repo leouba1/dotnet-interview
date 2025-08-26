@@ -5,7 +5,7 @@ namespace TodoApi.Repositories;
 public interface ITodoListRepository
 {
     Task<IList<TodoList>> GetAllAsync();
-    Task<TodoList?> GetAsync(long id);
+    Task<TodoList?> GetAsync(long id, bool track = false);
     Task AddAsync(TodoList list);
     Task RemoveAsync(TodoList list);
     Task SaveChangesAsync();
