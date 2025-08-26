@@ -3,15 +3,8 @@ using TodoApi.Models;
 
 namespace TodoApi.Repositories;
 
-public class TodoListRepository : ITodoListRepository
+public class TodoListRepository(TodoContext _context) : ITodoListRepository
 {
-    private readonly TodoContext _context;
-
-    public TodoListRepository(TodoContext context)
-    {
-        _context = context;
-    }
-
     public async Task<IList<TodoList>> GetAllAsync()
     {
         return await _context.TodoList.AsNoTracking().ToListAsync();

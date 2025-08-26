@@ -9,15 +9,8 @@ namespace TodoApi.Controllers;
 
 [Route("api/todolists")]
 [ApiController]
-public class TodoListsController : ControllerBase
+public class TodoListsController(ITodoListRepository _repository) : ControllerBase
 {
-    private readonly ITodoListRepository _repository;
-
-    public TodoListsController(ITodoListRepository repository)
-    {
-        _repository = repository;
-    }
-
     // GET: api/todolists
     [HttpGet]
     public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists()
