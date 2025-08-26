@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TodoApi.Dtos.TodoItems;
@@ -6,6 +7,9 @@ using TodoApi.Repositories;
 
 namespace TodoApi.Controllers;
 
+/// <summary>
+/// API for managing todo items within a todo list.
+/// </summary>
 [Route("api/todolist/{todolistId}/todoitems")]
 [ApiController]
 public class TodoItemsController(
@@ -14,8 +18,16 @@ public class TodoItemsController(
     ILogger<TodoItemsController> _logger
 ) : ControllerBase
 {
-    // GET: api/todolist/{id}/todoitems
+    /// <summary>
+    /// Retrieves items for the specified todo list.
+    /// </summary>
+    /// <param name="todolistId">The identifier of the todo list.</param>
+    /// <param name="search">Optional search term to filter items.</param>
+    /// <param name="page">The page number for pagination.</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <returns>A list of todo items.</returns>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(IEnumerable<TodoItemDto>))]
     public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(
         long todolistId,
         [FromQuery] string? search = null,
@@ -27,8 +39,17 @@ public class TodoItemsController(
         return Ok(items.Select(item => item.ToDto()).ToList());
     }
 
-    // GET: api/todolist/{id}/todoitems/5
+    /// <summary>
+    /// Retrieves a specific todo item from the specified list.
+    /// </summary>
+    /// <param name="todolistId">The identifier of the todo list.</param>
+    /// <param name="id">The identifier of the todo item.</param>
+    /// <returns>The requested todo item.</returns>
+    /// <response code="200">The requested todo item.</response>
+    /// <response code="404">The todo item was not found.</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(TodoItemDto))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id)
     {
         if (await _itemRepository.GetAsync(todolistId, id) is not { } todoItem)
@@ -40,9 +61,18 @@ public class TodoItemsController(
         return Ok(todoItem.ToDto());
     }
 
-    // PUT: api/todoitems/5
-    // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    /// <summary>
+    /// Updates a todo item in the specified list.
+    /// </summary>
+    /// <param name="todolistId">The identifier of the todo list.</param>
+    /// <param name="id">The identifier of the todo item.</param>
+    /// <param name="payload">Updated fields for the todo item.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">The todo item was updated successfully.</response>
+    /// <response code="404">The todo item was not found.</response>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> PutTodoItem(long todolistId, long id, UpdateTodoItem payload)
     {
         if (await _itemRepository.GetAsync(todolistId, id, track: true) is not { } todoItem)
@@ -59,9 +89,17 @@ public class TodoItemsController(
         return NoContent();
     }
 
-    // POST: api/todoitems
-    // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    /// <summary>
+    /// Creates a new todo item in the specified list.
+    /// </summary>
+    /// <param name="todolistId">The identifier of the todo list.</param>
+    /// <param name="payload">Data for the new todo item.</param>
+    /// <returns>The created todo item.</returns>
+    /// <response code="201">The todo item was created successfully.</response>
+    /// <response code="404">The parent todo list was not found.</response>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(TodoItemDto))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoItemDto>> PostTodoItem(long todolistId, CreateTodoItem payload)
     {
         if (await _listRepository.GetAsync(todolistId) is not { } todoList)
@@ -78,8 +116,17 @@ public class TodoItemsController(
         return CreatedAtAction(nameof(GetTodoItem), new { todolistId, id = todoItem.Id }, todoItem.ToDto());
     }
 
-    // DELETE: api/todolist/{todolistId}/todoitems/{id}
+    /// <summary>
+    /// Deletes a todo item from the specified list.
+    /// </summary>
+    /// <param name="todolistId">The identifier of the todo list.</param>
+    /// <param name="id">The identifier of the todo item.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">The todo item was deleted.</response>
+    /// <response code="404">The todo item was not found.</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteTodoItem(long todolistId, long id)
     {
         if (await _itemRepository.GetAsync(todolistId, id, track: true) is not { } todoItem)
