@@ -27,6 +27,8 @@ public class TodoListRepository(TodoContext _context) : ITodoListRepository
                 Id = l.Id,
                 Name = l.Name,
                 ItemCount = l.TodoItems.Count,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt,
                 TodoItems = includeItems ? l.TodoItems : new List<TodoItem>()
             })
             .ToListAsync();
