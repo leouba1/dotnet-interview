@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using TodoApi.Controllers;
-using TodoApi.Dtos;
 using TodoApi.Models;
 using TodoApi.Repositories;
 using TodoApi.Dtos.TodoItems;
@@ -96,7 +94,7 @@ public class TodoItemsControllerTests
 
             var itemRepository = new TodoItemRepository(context);
             var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemController(itemRepository, listRepository);
+            var controller = new TodoItemsController(itemRepository, listRepository);
 
             var result = await controller.GetTodoItems(1);
 
@@ -115,7 +113,7 @@ public class TodoItemsControllerTests
 
             var itemRepository = new TodoItemRepository(context);
             var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemController(itemRepository, listRepository);
+            var controller = new TodoItemsController(itemRepository, listRepository);
 
             var result = await controller.GetTodoItem(1, 1);
 
@@ -134,7 +132,7 @@ public class TodoItemsControllerTests
 
             var itemRepository = new TodoItemRepository(context);
             var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemController(itemRepository, listRepository);
+            var controller = new TodoItemsController(itemRepository, listRepository);
 
             var payload = new CreateTodoItem { Description = "Item 3", IsCompleted = false };
 

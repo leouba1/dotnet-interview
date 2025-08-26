@@ -3,89 +3,88 @@ using TodoApi.Dtos.TodoItems;
 using TodoApi.Mappers;
 using TodoApi.Repositories;
 
-namespace TodoApi.Controllers
+namespace TodoApi.Controllers;
+
+[Route("api/todolist/{todolistId}/todoitems")]
+[ApiController]
+public class TodoItemsController : ControllerBase
 {
-    [Route("api/todolist/{todolistId}/todoitems")]
-    [ApiController]
-    public class TodoItemsController : ControllerBase
+    private readonly ITodoItemRepository _itemRepository;
+    private readonly ITodoListRepository _listRepository;
+
+    public TodoItemsController(ITodoItemRepository items, ITodoListRepository lists)
     {
-        private readonly ITodoItemRepository _itemRepository;
-        private readonly ITodoListRepository _listRepository;
+        _itemRepository = items;
+        _listRepository = lists;
+    }
 
-        public TodoItemsController(ITodoItemRepository items, ITodoListRepository lists)
+    // GET: api/todolist/{id}/todoitems
+    [HttpGet]
+    public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(long todolistId)
+    {
+        var items = await _itemRepository.GetByListIdAsync(todolistId);
+        return Ok(items.Select(item => item.ToDto()).ToList());
+    }
+
+    // GET: api/todolist/{id}/todoitems/5
+    [HttpGet("{id}")]
+    public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id)
+    {
+        var todoItem = await _itemRepository.GetAsync(todolistId, id);
+
+        if (todoItem == null)
         {
-            _itemRepository = items;
-            _listRepository = lists;
+            return NotFound();
         }
 
-        // GET: api/todolist/{id}/todoitems
-        [HttpGet]
-        public async Task<ActionResult<IList<TodoItemDto>>> GetTodoItems(long todolistId)
+        return Ok(todoItem.ToDto());
+    }
+
+    // PUT: api/todoitems/5
+    // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPut("{id}")]
+    public async Task<ActionResult> PutTodoItem(long todolistId, long id, UpdateTodoItem payload)
+    {
+        var todoItem = await _itemRepository.GetAsync(todolistId, id, track: true);
+        if (todoItem == null)
+            return NotFound();
+
+        payload.UpdateModel(todoItem);
+
+        await _itemRepository.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // POST: api/todoitems
+    // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPost]
+    public async Task<ActionResult<TodoItemDto>> PostTodoItem(long todolistId, CreateTodoItem payload)
+    {
+        var todoList = await _listRepository.GetAsync(todolistId);
+        if (todoList == null)
+            return NotFound();
+
+        var todoItem = payload.ToModel(todolistId);
+
+        await _itemRepository.AddAsync(todoItem);
+
+        return CreatedAtAction(nameof(GetTodoItem), new { todolistId, id = todoItem.Id }, todoItem.ToDto());
+    }
+
+    // DELETE: api/todolist/{todolistId}/todoitems/{id}
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteTodoItem(long todolistId, long id)
+    {
+        var todoItem = await _itemRepository.GetAsync(todolistId, id, track: true);
+
+        if (todoItem == null)
         {
-            var items = await _itemRepository.GetByListIdAsync(todolistId);
-            return Ok(items.Select(item => item.ToDto()).ToList());
+            return NotFound();
         }
 
-        // GET: api/todolist/{id}/todoitems/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id)
-        {
-            var todoItem = await _itemRepository.GetAsync(todolistId, id);
+        await _itemRepository.RemoveAsync(todoItem);
 
-            if (todoItem == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(todoItem.ToDto());
-        }
-
-        // PUT: api/todoitems/5
-        // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<ActionResult> PutTodoItem(long todolistId, long id, UpdateTodoItem payload)
-        {
-            var todoItem = await _itemRepository.GetAsync(todolistId, id, track: true);
-            if (todoItem == null)
-                return NotFound();
-
-            payload.UpdateModel(todoItem);
-
-            await _itemRepository.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        // POST: api/todoitems
-        // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<TodoItemDto>> PostTodoItem(long todolistId, CreateTodoItem payload)
-        {
-            var todoList = await _listRepository.GetAsync(todolistId);
-            if (todoList == null)
-                return NotFound();
-
-            var todoItem = payload.ToModel(todolistId);
-
-            await _itemRepository.AddAsync(todoItem);
-
-            return CreatedAtAction(nameof(GetTodoItem), new { todolistId, id = todoItem.Id }, todoItem.ToDto());
-        }
-
-        // DELETE: api/todolist/{todolistId}/todoitems/{id}
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteTodoItem(long todolistId, long id)
-        {
-            var todoItem = await _itemRepository.GetAsync(todolistId, id, track: true);
-
-            if (todoItem == null)
-            {
-                return NotFound();
-            }
-
-            await _itemRepository.RemoveAsync(todoItem);
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }

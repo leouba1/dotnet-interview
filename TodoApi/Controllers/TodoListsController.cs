@@ -1,89 +1,90 @@
 using Microsoft.AspNetCore.Mvc;
 using TodoApi.Dtos.TodoLists;
+using TodoApi.Dtos.TodoItems;
+using TodoApi.Models;
 using TodoApi.Mappers;
 using TodoApi.Repositories;
 
-namespace TodoApi.Controllers
+namespace TodoApi.Controllers;
+
+[Route("api/todolists")]
+[ApiController]
+public class TodoListsController : ControllerBase
 {
-    [Route("api/todolists")]
-    [ApiController]
-    public class TodoListsController : ControllerBase
+    private readonly ITodoListRepository _repository;
+
+    public TodoListsController(ITodoListRepository repository)
     {
-        private readonly ITodoListRepository _repository;
-
-        public TodoListsController(ITodoListRepository repository)
-        {
-            _repository = repository;
-        }
-
-        // GET: api/todolists
-        [HttpGet]
-        public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists()
-        {
-            var lists = await _repository.GetAllAsync();
-            var dtos = lists.Select(list => list.ToDto()).ToList();
-
-            return Ok(dtos);
-        }
-
-        // GET: api/todolists/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TodoListDto>> GetTodoList(long id)
-        {
-            var todoList = await _repository.GetAsync(id);
-
-            if (todoList == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(todoList.ToDto());
-        }
-
-        // PUT: api/todolists/5
-        // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
-        {
-            var todoList = await _repository.GetAsync(id, track: true);
-
-            if (todoList == null)
-            {
-                return NotFound();
-            }
-
-            payload.UpdateModel(todoList);
-            await _repository.SaveChangesAsync();
-
-            return Ok(todoList.ToDto());
-        }
-
-        // POST: api/todolists
-        // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload)
-        {
-            var todoList = payload.ToModel();
-
-            await _repository.AddAsync(todoList);
-
-            return CreatedAtAction(nameof(GetTodoList), new { id = todoList.Id }, todoList.ToDto());
-        }
-
-        // DELETE: api/todolists/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteTodoList(long id)
-        {
-            var todoList = await _repository.GetAsync(id, track: true);
-            if (todoList == null)
-            {
-                return NotFound();
-            }
-
-            await _repository.RemoveAsync(todoList);
-
-            return NoContent();
-        }
-
+        _repository = repository;
     }
+
+    // GET: api/todolists
+    [HttpGet]
+    public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists()
+    {
+        var lists = await _repository.GetAllAsync();
+        var dtos = lists.Select(list => list.ToDto()).ToList();
+
+        return Ok(dtos);
+    }
+
+    // GET: api/todolists/5
+    [HttpGet("{id}")]
+    public async Task<ActionResult<TodoListDto>> GetTodoList(long id)
+    {
+        var todoList = await _repository.GetAsync(id);
+
+        if (todoList == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(todoList.ToDto());
+    }
+
+    // PUT: api/todolists/5
+    // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPut("{id}")]
+    public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
+    {
+        var todoList = await _repository.GetAsync(id, track: true);
+
+        if (todoList == null)
+        {
+            return NotFound();
+        }
+
+        payload.UpdateModel(todoList);
+        await _repository.SaveChangesAsync();
+
+        return Ok(todoList.ToDto());
+    }
+
+    // POST: api/todolists
+    // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+    [HttpPost]
+    public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload)
+    {
+        var todoList = payload.ToModel();
+
+        await _repository.AddAsync(todoList);
+
+        return CreatedAtAction(nameof(GetTodoList), new { id = todoList.Id }, todoList.ToDto());
+    }
+
+    // DELETE: api/todolists/5
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> DeleteTodoList(long id)
+    {
+        var todoList = await _repository.GetAsync(id, track: true);
+        if (todoList == null)
+        {
+            return NotFound();
+        }
+
+        await _repository.RemoveAsync(todoList);
+
+        return NoContent();
+    }
+
 }
