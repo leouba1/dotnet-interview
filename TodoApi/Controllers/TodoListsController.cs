@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using TodoApi.Dtos.TodoLists;
 using TodoApi.Mappers;
 using TodoApi.Repositories;
@@ -128,5 +126,4 @@ public class TodoListsController(
 
         return NoContent();
     }
-
 }

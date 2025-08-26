@@ -9,6 +9,7 @@ using TodoApi.Dtos.TodoLists;
 namespace TodoApi.Tests;
 
 #nullable disable
+
 public class TodoListsControllerTests
 {
     private DbContextOptions<TodoContext> DatabaseContextOptions()
