@@ -30,10 +30,11 @@ public class TodoItemsController(
         long todolistId,
         [FromQuery] string? search = null,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving items for list {ListId}", todolistId);
-        var items = await _itemRepository.GetByListIdAsync(todolistId, search, page, pageSize);
+        var items = await _itemRepository.GetByListIdAsync(todolistId, search, page, pageSize, cancellationToken);
         return Ok(items.Select(item => item.ToDto()).ToList());
     }
 
@@ -48,9 +49,9 @@ public class TodoItemsController(
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoItemDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id)
+    public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id, CancellationToken cancellationToken = default)
     {
-        if (await _itemRepository.GetAsync(todolistId, id) is not { } todoItem)
+        if (await _itemRepository.GetAsync(todolistId, id, cancellationToken: cancellationToken) is not { } todoItem)
         {
             _logger.LogWarning("Todo item {ItemId} for list {ListId} not found", id, todolistId);
             return NotFound();
@@ -71,9 +72,9 @@ public class TodoItemsController(
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> PutTodoItem(long todolistId, long id, UpdateTodoItem payload)
+    public async Task<ActionResult> PutTodoItem(long todolistId, long id, UpdateTodoItem payload, CancellationToken cancellationToken = default)
     {
-        if (await _itemRepository.GetAsync(todolistId, id, track: true) is not { } todoItem)
+        if (await _itemRepository.GetAsync(todolistId, id, track: true, cancellationToken: cancellationToken) is not { } todoItem)
         {
             _logger.LogWarning("Todo item {ItemId} for list {ListId} not found", id, todolistId);
             return NotFound();
@@ -81,7 +82,7 @@ public class TodoItemsController(
 
         payload.UpdateModel(todoItem);
 
-        await _itemRepository.SaveChangesAsync();
+        await _itemRepository.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Todo item {ItemId} updated", id);
 
         return NoContent();
@@ -98,9 +99,9 @@ public class TodoItemsController(
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(TodoItemDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<TodoItemDto>> PostTodoItem(long todolistId, CreateTodoItem payload)
+    public async Task<ActionResult<TodoItemDto>> PostTodoItem(long todolistId, CreateTodoItem payload, CancellationToken cancellationToken = default)
     {
-        if (await _listRepository.GetAsync(todolistId) is not { } todoList)
+        if (await _listRepository.GetAsync(todolistId, cancellationToken: cancellationToken) is not { } todoList)
         {
             _logger.LogWarning("Todo list {ListId} not found when creating item", todolistId);
             return NotFound();
@@ -108,7 +109,7 @@ public class TodoItemsController(
 
         var todoItem = payload.ToModel(todolistId);
 
-        await _itemRepository.AddAsync(todoItem);
+        await _itemRepository.AddAsync(todoItem, cancellationToken);
         _logger.LogInformation("Todo item {ItemId} created in list {ListId}", todoItem.Id, todolistId);
 
         return CreatedAtAction(nameof(GetTodoItem), new { todolistId, id = todoItem.Id }, todoItem.ToDto());
@@ -125,15 +126,15 @@ public class TodoItemsController(
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DeleteTodoItem(long todolistId, long id)
+    public async Task<ActionResult> DeleteTodoItem(long todolistId, long id, CancellationToken cancellationToken = default)
     {
-        if (await _itemRepository.GetAsync(todolistId, id, track: true) is not { } todoItem)
+        if (await _itemRepository.GetAsync(todolistId, id, track: true, cancellationToken: cancellationToken) is not { } todoItem)
         {
             _logger.LogWarning("Todo item {ItemId} for list {ListId} not found", id, todolistId);
             return NotFound();
         }
 
-        await _itemRepository.RemoveAsync(todoItem);
+        await _itemRepository.RemoveAsync(todoItem, cancellationToken);
         _logger.LogInformation("Todo item {ItemId} deleted from list {ListId}", id, todolistId);
 
         return NoContent();

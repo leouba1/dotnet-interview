@@ -29,10 +29,11 @@ public class TodoListsController(
         [FromQuery] bool includeItems = false,
         [FromQuery] string? search = null,
         [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+        [FromQuery] int pageSize = 10,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving todo lists");
-        var lists = await _repository.GetAllAsync(includeItems, search, page, pageSize);
+        var lists = await _repository.GetAllAsync(includeItems, search, page, pageSize, cancellationToken);
         var dtos = lists.Select(list => list.ToDto(includeItems)).ToList();
 
         return Ok(dtos);
@@ -48,9 +49,9 @@ public class TodoListsController(
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoListDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<TodoListDto>> GetTodoList(long id)
+    public async Task<ActionResult<TodoListDto>> GetTodoList(long id, CancellationToken cancellationToken = default)
     {
-        if (await _repository.GetAsync(id) is not { } todoList)
+        if (await _repository.GetAsync(id, cancellationToken: cancellationToken) is not { } todoList)
         {
             _logger.LogWarning("Todo list {Id} not found", id);
             return NotFound();
@@ -70,16 +71,16 @@ public class TodoListsController(
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoListDto))]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
+    public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload, CancellationToken cancellationToken = default)
     {
-        if (await _repository.GetAsync(id, track: true) is not { } todoList)
+        if (await _repository.GetAsync(id, track: true, cancellationToken: cancellationToken) is not { } todoList)
         {
             _logger.LogWarning("Todo list {Id} not found", id);
             return NotFound();
         }
 
         payload.UpdateModel(todoList);
-        await _repository.SaveChangesAsync();
+        await _repository.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Todo list {Id} updated", id);
 
         return Ok(todoList.ToDto());
@@ -93,11 +94,11 @@ public class TodoListsController(
     /// <response code="201">The todo list was created successfully.</response>
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(TodoListDto))]
-    public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload)
+    public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload, CancellationToken cancellationToken = default)
     {
         var todoList = payload.ToModel();
 
-        await _repository.AddAsync(todoList);
+        await _repository.AddAsync(todoList, cancellationToken);
         _logger.LogInformation("Todo list {Id} created", todoList.Id);
 
         return CreatedAtAction(nameof(GetTodoList), new { id = todoList.Id }, todoList.ToDto());
@@ -113,15 +114,15 @@ public class TodoListsController(
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> DeleteTodoList(long id)
+    public async Task<ActionResult> DeleteTodoList(long id, CancellationToken cancellationToken = default)
     {
-        if (await _repository.GetAsync(id, track: true) is not { } todoList)
+        if (await _repository.GetAsync(id, track: true, cancellationToken: cancellationToken) is not { } todoList)
         {
             _logger.LogWarning("Todo list {Id} not found", id);
             return NotFound();
         }
 
-        await _repository.RemoveAsync(todoList);
+        await _repository.RemoveAsync(todoList, cancellationToken);
         _logger.LogInformation("Todo list {Id} deleted", id);
 
         return NoContent();
