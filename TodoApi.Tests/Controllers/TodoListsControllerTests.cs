@@ -93,6 +93,29 @@ public class TodoListsControllerTests
     }
 
     [Fact]
+    public async Task GetTodoLists_WhenSearchedByItemDescription_ReturnsParentList()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            var list = new TodoList { Id = 3, Name = "Groceries" };
+            context.TodoList.Add(list);
+            context.TodoItems.Add(new TodoItem { Id = 1, TodoListId = 3, Description = "Buy milk" });
+            context.SaveChanges();
+
+            var repository = new TodoListRepository(context);
+            var controller = new TodoListsController(repository);
+
+            var result = await controller.GetTodoLists(search: "milk");
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var lists = Assert.IsAssignableFrom<IList<TodoListDto>>(ok.Value);
+            Assert.Collection(lists, l => Assert.Equal("Groceries", l.Name));
+        }
+    }
+
+    [Fact]
     public async Task GetTodoLists_WhenPaginated_ReturnsCorrectPage()
     {
         using (var context = new TodoContext(DatabaseContextOptions()))
