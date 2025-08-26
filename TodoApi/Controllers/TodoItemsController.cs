@@ -30,12 +30,7 @@ public class TodoItemsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<TodoItemDto>> GetTodoItem(long todolistId, long id)
     {
-        var todoItem = await _itemRepository.GetAsync(todolistId, id);
-
-        if (todoItem == null)
-        {
-            return NotFound();
-        }
+        if (await _itemRepository.GetAsync(todolistId, id) is not { } todoItem) return NotFound();
 
         return Ok(todoItem.ToDto());
     }
@@ -45,9 +40,7 @@ public class TodoItemsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> PutTodoItem(long todolistId, long id, UpdateTodoItem payload)
     {
-        var todoItem = await _itemRepository.GetAsync(todolistId, id, track: true);
-        if (todoItem == null)
-            return NotFound();
+        if (await _itemRepository.GetAsync(todolistId, id, track: true) is not { } todoItem) return NotFound();
 
         payload.UpdateModel(todoItem);
 
@@ -61,9 +54,7 @@ public class TodoItemsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<TodoItemDto>> PostTodoItem(long todolistId, CreateTodoItem payload)
     {
-        var todoList = await _listRepository.GetAsync(todolistId);
-        if (todoList == null)
-            return NotFound();
+        if (await _listRepository.GetAsync(todolistId) is not { } todoList) return NotFound();
 
         var todoItem = payload.ToModel(todolistId);
 
@@ -76,12 +67,7 @@ public class TodoItemsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteTodoItem(long todolistId, long id)
     {
-        var todoItem = await _itemRepository.GetAsync(todolistId, id, track: true);
-
-        if (todoItem == null)
-        {
-            return NotFound();
-        }
+        if (await _itemRepository.GetAsync(todolistId, id, track: true) is not { } todoItem) return NotFound();
 
         await _itemRepository.RemoveAsync(todoItem);
 

@@ -32,12 +32,7 @@ public class TodoListsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<TodoListDto>> GetTodoList(long id)
     {
-        var todoList = await _repository.GetAsync(id);
-
-        if (todoList == null)
-        {
-            return NotFound();
-        }
+        if (await _repository.GetAsync(id) is not { } todoList) return NotFound();
 
         return Ok(todoList.ToDto());
     }
@@ -47,12 +42,7 @@ public class TodoListsController : ControllerBase
     [HttpPut("{id}")]
     public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
     {
-        var todoList = await _repository.GetAsync(id, track: true);
-
-        if (todoList == null)
-        {
-            return NotFound();
-        }
+        if (await _repository.GetAsync(id, track: true) is not { } todoList) return NotFound();
 
         payload.UpdateModel(todoList);
         await _repository.SaveChangesAsync();
@@ -76,11 +66,7 @@ public class TodoListsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteTodoList(long id)
     {
-        var todoList = await _repository.GetAsync(id, track: true);
-        if (todoList == null)
-        {
-            return NotFound();
-        }
+        if (await _repository.GetAsync(id, track: true) is not { } todoList) return NotFound();
 
         await _repository.RemoveAsync(todoList);
 
