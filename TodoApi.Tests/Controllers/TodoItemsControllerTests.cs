@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using TodoApi.Controllers;
 using TodoApi.Models;
 using TodoApi.Repositories;
@@ -26,6 +27,13 @@ public class TodoItemsControllerTests
         context.SaveChanges();
     }
 
+    private TodoItemsController CreateController(TodoContext context)
+    {
+        var itemRepository = new TodoItemRepository(context);
+        var listRepository = new TodoListRepository(context);
+        return new TodoItemsController(itemRepository, listRepository, NullLogger<TodoItemsController>.Instance);
+    }
+
     [Fact]
     public async Task DeleteTodoItem_WhenItemBelongsToList_RemovesItem()
     {
@@ -33,9 +41,7 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var itemRepository = new TodoItemRepository(context);
-            var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemsController(itemRepository, listRepository);
+            var controller = CreateController(context);
 
             var result = await controller.DeleteTodoItem(1, 1);
 
@@ -51,9 +57,7 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var itemRepository = new TodoItemRepository(context);
-            var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemsController(itemRepository, listRepository);
+            var controller = CreateController(context);
 
             var result = await controller.DeleteTodoItem(1, 2);
 
@@ -69,9 +73,7 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var itemRepository = new TodoItemRepository(context);
-            var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemsController(itemRepository, listRepository);
+            var controller = CreateController(context);
 
             var payload = new UpdateTodoItem { IsCompleted = true };
 
@@ -92,9 +94,7 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var itemRepository = new TodoItemRepository(context);
-            var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemsController(itemRepository, listRepository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoItems(1);
 
@@ -111,9 +111,7 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var itemRepository = new TodoItemRepository(context);
-            var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemsController(itemRepository, listRepository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoItem(1, 1);
 
@@ -130,9 +128,7 @@ public class TodoItemsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var itemRepository = new TodoItemRepository(context);
-            var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemsController(itemRepository, listRepository);
+            var controller = CreateController(context);
 
             var payload = new CreateTodoItem { Description = "Item 3", IsCompleted = false };
 
@@ -154,9 +150,7 @@ public class TodoItemsControllerTests
             context.TodoItems.Add(new TodoItem { Id = 3, TodoListId = 1, Description = "Home task", IsCompleted = false });
             context.SaveChanges();
 
-            var itemRepository = new TodoItemRepository(context);
-            var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemsController(itemRepository, listRepository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoItems(1, search: "Home");
 
@@ -178,9 +172,7 @@ public class TodoItemsControllerTests
             context.TodoItems.Add(new TodoItem { Id = 5, TodoListId = 1, Description = "Item 5", IsCompleted = false });
             context.SaveChanges();
 
-            var itemRepository = new TodoItemRepository(context);
-            var listRepository = new TodoListRepository(context);
-            var controller = new TodoItemsController(itemRepository, listRepository);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoItems(1, page: 2, pageSize: 2);
 
