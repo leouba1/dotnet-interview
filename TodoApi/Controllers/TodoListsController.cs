@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using TodoApi.Dtos.TodoLists;
@@ -25,6 +26,7 @@ public class TodoListsController(
     /// <param name="pageSize">The number of items per page.</param>
     /// <returns>A list of todo lists.</returns>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(IEnumerable<TodoListDto>))]
     public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists(
         [FromQuery] bool includeItems = false,
         [FromQuery] string? search = null,
@@ -43,7 +45,11 @@ public class TodoListsController(
     /// </summary>
     /// <param name="id">The identifier of the todo list.</param>
     /// <returns>The requested todo list.</returns>
+    /// <response code="200">The requested todo list.</response>
+    /// <response code="404">The todo list was not found.</response>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(TodoListDto))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TodoListDto>> GetTodoList(long id)
     {
         if (await _repository.GetAsync(id) is not { } todoList)
@@ -61,7 +67,11 @@ public class TodoListsController(
     /// <param name="id">The identifier of the todo list.</param>
     /// <param name="payload">Updated fields for the todo list.</param>
     /// <returns>The updated todo list.</returns>
+    /// <response code="200">The todo list was updated successfully.</response>
+    /// <response code="404">The todo list was not found.</response>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200Ok, Type = typeof(TodoListDto))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
     {
         if (await _repository.GetAsync(id, track: true) is not { } todoList)
@@ -82,7 +92,9 @@ public class TodoListsController(
     /// </summary>
     /// <param name="payload">Data for the new list.</param>
     /// <returns>The created todo list.</returns>
+    /// <response code="201">The todo list was created successfully.</response>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(TodoListDto))]
     public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload)
     {
         var todoList = payload.ToModel();
@@ -98,7 +110,11 @@ public class TodoListsController(
     /// </summary>
     /// <param name="id">The identifier of the todo list.</param>
     /// <returns>No content on success.</returns>
+    /// <response code="204">The todo list was deleted.</response>
+    /// <response code="404">The todo list was not found.</response>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteTodoList(long id)
     {
         if (await _repository.GetAsync(id, track: true) is not { } todoList)
