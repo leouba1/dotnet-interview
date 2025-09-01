@@ -1,92 +1,136 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Dtos;
-using TodoApi.Models;
+using TodoApi.Dtos.TodoLists;
+using TodoApi.Mappers;
+using TodoApi.Repositories;
 
-namespace TodoApi.Controllers
+namespace TodoApi.Controllers;
+
+/// <summary>
+/// API for managing todo lists.
+/// </summary>
+[Route("api/todolists")]
+[ApiController]
+public class TodoListsController(
+    ITodoListRepository _repository,
+    ILogger<TodoListsController> _logger
+) : ControllerBase
 {
-    [Route("api/todolists")]
-    [ApiController]
-    public class TodoListsController : ControllerBase
+    /// <summary>
+    /// Retrieves todo lists with optional pagination and search.
+    /// </summary>
+    /// <param name="includeItems">Whether to include todo items in the response.</param>
+    /// <param name="search">Optional search term to filter lists.</param>
+    /// <param name="page">The page number for pagination (must be at least 1).</param>
+    /// <param name="pageSize">The number of items per page (must be at least 1).</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>A list of todo lists.</returns>
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<TodoListDto>))]
+    public async Task<ActionResult<IList<TodoListDto>>> GetTodoLists(
+        [FromQuery] bool includeItems = false,
+        [FromQuery] string? search = null,
+        [FromQuery, Range(1, int.MaxValue)] int page = 1,
+        [FromQuery, Range(1, int.MaxValue)] int pageSize = 10,
+        CancellationToken cancellationToken = default)
     {
-        private readonly TodoContext _context;
+        _logger.LogInformation("Retrieving todo lists");
+        var lists = await _repository.GetAllAsync(includeItems, search, page, pageSize, cancellationToken);
+        var dtos = lists.Select(list => list.ToDto(includeItems)).ToList();
 
-        public TodoListsController(TodoContext context)
+        return Ok(dtos);
+    }
+
+    /// <summary>
+    /// Retrieves a specific todo list.
+    /// </summary>
+    /// <param name="id">The identifier of the todo list.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The requested todo list.</returns>
+    /// <response code="200">The requested todo list.</response>
+    /// <response code="404">The todo list was not found.</response>
+    [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoListDto))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TodoListDto>> GetTodoList(long id, CancellationToken cancellationToken = default)
+    {
+        if (await _repository.GetAsync(id, cancellationToken: cancellationToken) is not { } todoList)
         {
-            _context = context;
+            _logger.LogWarning("Todo list {Id} not found", id);
+            return NotFound();
         }
 
-        // GET: api/todolists
-        [HttpGet]
-        public async Task<ActionResult<IList<TodoList>>> GetTodoLists()
+        return Ok(todoList.ToDto());
+    }
+
+    /// <summary>
+    /// Updates a todo list.
+    /// </summary>
+    /// <param name="id">The identifier of the todo list.</param>
+    /// <param name="payload">Updated fields for the todo list.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The updated todo list.</returns>
+    /// <response code="200">The todo list was updated successfully.</response>
+    /// <response code="404">The todo list was not found.</response>
+    [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TodoListDto))]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload, CancellationToken cancellationToken = default)
+    {
+        if (await _repository.GetAsync(id, track: true, cancellationToken: cancellationToken) is not { } todoList)
         {
-            return Ok(await _context.TodoList.ToListAsync());
+            _logger.LogWarning("Todo list {Id} not found", id);
+            return NotFound();
         }
 
-        // GET: api/todolists/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TodoList>> GetTodoList(long id)
+        payload.UpdateModel(todoList);
+        await _repository.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Todo list {Id} updated", id);
+
+        return Ok(todoList.ToDto());
+    }
+
+    /// <summary>
+    /// Creates a new todo list.
+    /// </summary>
+    /// <param name="payload">Data for the new list.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>The created todo list.</returns>
+    /// <response code="201">The todo list was created successfully.</response>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(TodoListDto))]
+    public async Task<ActionResult<TodoListDto>> PostTodoList(CreateTodoList payload, CancellationToken cancellationToken = default)
+    {
+        var todoList = payload.ToModel();
+
+        await _repository.AddAsync(todoList, cancellationToken);
+        _logger.LogInformation("Todo list {Id} created", todoList.Id);
+
+        return CreatedAtAction(nameof(GetTodoList), new { id = todoList.Id }, todoList.ToDto());
+    }
+
+    /// <summary>
+    /// Deletes a todo list.
+    /// </summary>
+    /// <param name="id">The identifier of the todo list.</param>
+    /// <param name="cancellationToken">Token to cancel the operation.</param>
+    /// <returns>No content on success.</returns>
+    /// <response code="204">The todo list was deleted.</response>
+    /// <response code="404">The todo list was not found.</response>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> DeleteTodoList(long id, CancellationToken cancellationToken = default)
+    {
+        if (await _repository.GetAsync(id, track: true, cancellationToken: cancellationToken) is not { } todoList)
         {
-            var todoList = await _context.TodoList.FindAsync(id);
-
-            if (todoList == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(todoList);
+            _logger.LogWarning("Todo list {Id} not found", id);
+            return NotFound();
         }
 
-        // PUT: api/todolists/5
-        // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<ActionResult> PutTodoList(long id, UpdateTodoList payload)
-        {
-            var todoList = await _context.TodoList.FindAsync(id);
+        await _repository.RemoveAsync(todoList, cancellationToken);
+        _logger.LogInformation("Todo list {Id} deleted", id);
 
-            if (todoList == null)
-            {
-                return NotFound();
-            }
-
-            todoList.Name = payload.Name;
-            await _context.SaveChangesAsync();
-
-            return Ok(todoList);
-        }
-
-        // POST: api/todolists
-        // To protect from over-posting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<TodoList>> PostTodoList(CreateTodoList payload)
-        {
-            var todoList = new TodoList { Name = payload.Name };
-
-            _context.TodoList.Add(todoList);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetTodoList", new { id = todoList.Id }, todoList);
-        }
-
-        // DELETE: api/todolists/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteTodoList(long id)
-        {
-            var todoList = await _context.TodoList.FindAsync(id);
-            if (todoList == null)
-            {
-                return NotFound();
-            }
-
-            _context.TodoList.Remove(todoList);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool TodoListExists(long id)
-        {
-            return (_context.TodoList?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
+        return NoContent();
     }
 }

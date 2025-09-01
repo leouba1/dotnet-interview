@@ -1,11 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using TodoApi.Controllers;
 using TodoApi.Models;
+using TodoApi.Repositories;
+using TodoApi.Dtos.TodoLists;
 
 namespace TodoApi.Tests;
 
 #nullable disable
+
 public class TodoListsControllerTests
 {
     private DbContextOptions<TodoContext> DatabaseContextOptions()
@@ -22,6 +26,12 @@ public class TodoListsControllerTests
         context.SaveChanges();
     }
 
+    private TodoListsController CreateController(TodoContext context)
+    {
+        var repository = new TodoListRepository(context);
+        return new TodoListsController(repository, NullLogger<TodoListsController>.Instance);
+    }
+
     [Fact]
     public async Task GetTodoList_WhenCalled_ReturnsTodoListList()
     {
@@ -29,12 +39,108 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoListsController(context);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoLists();
 
             Assert.IsType<OkObjectResult>(result.Result);
-            Assert.Equal(2, ((result.Result as OkObjectResult).Value as IList<TodoList>).Count);
+            var value = (result.Result as OkObjectResult).Value as IList<TodoListDto>;
+            Assert.Equal(2, value.Count);
+            Assert.All(value, dto =>
+            {
+                Assert.Equal(0, dto.ItemCount);
+                Assert.Empty(dto.Items);
+            });
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoList_WhenIncludeItemsTrue_ReturnsItems()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            context.TodoItems.Add(new TodoItem { Id = 1, TodoListId = 1, Description = "Item 1", IsCompleted = false });
+            context.SaveChanges();
+
+            var controller = CreateController(context);
+
+            var result = await controller.GetTodoLists(true);
+
+            Assert.IsType<OkObjectResult>(result.Result);
+            var value = (result.Result as OkObjectResult).Value as IList<TodoListDto>;
+            var list = value.First(l => l.Id == 1);
+            Assert.Single(list.Items);
+            Assert.Equal(1, list.ItemCount);
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoLists_WhenSearched_ReturnsMatchingLists()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            context.TodoList.Add(new TodoList { Id = 3, Name = "Chores" });
+            context.TodoList.Add(new TodoList { Id = 4, Name = "Shopping" });
+            context.SaveChanges();
+
+            var controller = CreateController(context);
+
+            var result = await controller.GetTodoLists(search: "Shop");
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var lists = Assert.IsAssignableFrom<IList<TodoListDto>>(ok.Value);
+            Assert.Collection(lists, l => Assert.Equal("Shopping", l.Name));
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoLists_WhenSearchedByItemDescription_ReturnsParentList()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            var list = new TodoList { Id = 3, Name = "Groceries" };
+            context.TodoList.Add(list);
+            context.TodoItems.Add(new TodoItem { Id = 1, TodoListId = 3, Description = "Buy milk" });
+            context.SaveChanges();
+
+            var controller = CreateController(context);
+
+            var result = await controller.GetTodoLists(search: "milk");
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var lists = Assert.IsAssignableFrom<IList<TodoListDto>>(ok.Value);
+            Assert.Collection(lists, l => Assert.Equal("Groceries", l.Name));
+        }
+    }
+
+    [Fact]
+    public async Task GetTodoLists_WhenPaginated_ReturnsCorrectPage()
+    {
+        using (var context = new TodoContext(DatabaseContextOptions()))
+        {
+            PopulateDatabaseContext(context);
+
+            context.TodoList.Add(new TodoList { Id = 3, Name = "Task 3" });
+            context.TodoList.Add(new TodoList { Id = 4, Name = "Task 4" });
+            context.TodoList.Add(new TodoList { Id = 5, Name = "Task 5" });
+            context.SaveChanges();
+
+            var controller = CreateController(context);
+
+            var result = await controller.GetTodoLists(page: 2, pageSize: 2);
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var lists = Assert.IsAssignableFrom<IList<TodoListDto>>(ok.Value);
+            Assert.Equal(2, lists.Count);
+            Assert.Collection(lists,
+                l => Assert.Equal(3, l.Id),
+                l => Assert.Equal(4, l.Id));
         }
     }
 
@@ -45,12 +151,12 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoListsController(context);
+            var controller = CreateController(context);
 
             var result = await controller.GetTodoList(1);
 
             Assert.IsType<OkObjectResult>(result.Result);
-            Assert.Equal(1, ((result.Result as OkObjectResult).Value as TodoList).Id);
+            Assert.Equal(1, ((result.Result as OkObjectResult).Value as TodoListDto).Id);
         }
     }
 
@@ -61,11 +167,11 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoListsController(context);
+            var controller = CreateController(context);
 
             var result = await controller.PutTodoList(
                 3,
-                new Dtos.UpdateTodoList { Name = "Task 3" }
+                new UpdateTodoList { Name = "Task 3" }
             );
 
             Assert.IsType<NotFoundResult>(result);
@@ -79,12 +185,12 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoListsController(context);
+            var controller = CreateController(context);
 
             var todoList = await context.TodoList.Where(x => x.Id == 2).FirstAsync();
             var result = await controller.PutTodoList(
                 todoList.Id,
-                new Dtos.UpdateTodoList { Name = "Changed Task 2" }
+                new UpdateTodoList { Name = "Changed Task 2" }
             );
 
             Assert.IsType<OkObjectResult>(result);
@@ -98,9 +204,9 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoListsController(context);
+            var controller = CreateController(context);
 
-            var result = await controller.PostTodoList(new Dtos.CreateTodoList { Name = "Task 3" });
+            var result = await controller.PostTodoList(new CreateTodoList { Name = "Task 3" });
 
             Assert.IsType<CreatedAtActionResult>(result.Result);
             Assert.Equal(3, context.TodoList.Count());
@@ -114,7 +220,7 @@ public class TodoListsControllerTests
         {
             PopulateDatabaseContext(context);
 
-            var controller = new TodoListsController(context);
+            var controller = CreateController(context);
 
             var result = await controller.DeleteTodoList(2);
 
